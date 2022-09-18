@@ -1,7 +1,7 @@
 [package]
 name = "async-mpd"
 edition = "2018"
-version = "0.6.0.1"
+version = "0.6.1"
 authors = ["Johan Kristell <johan@jott.se>", "kibax <kibax@kibax.de>"]
 keywords = ["mpd"]
 license = "MIT OR Apache-2.0"
