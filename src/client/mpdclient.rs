@@ -164,7 +164,11 @@ impl MpdClient {
     }
 
     pub async fn queue_moveid(&mut self, from:u32, to:&str) -> Result<(), Error> {
-        self.exec(cmd::QueueMoveid(from, to)).await
+        self.exec(cmd::QueueMoveId(from, to)).await
+    }
+
+    pub async fn queue_deleteid(&mut self, songid:u32) -> Result<(), Error> {
+        self.exec(cmd::QueueDeleteId(songid)).await
     }
 
 

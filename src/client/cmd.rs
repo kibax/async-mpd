@@ -29,7 +29,9 @@ pub struct QueueClear;
 #[derive(Copy, Clone)]
 pub struct QueueAdd<'a>(pub &'a str);
 #[derive(Copy, Clone)]
-pub struct QueueMoveid<'a>(pub u32, pub &'a str);
+pub struct QueueMoveId<'a>(pub u32, pub &'a str);
+#[derive(Copy, Clone)]
+pub struct QueueDeleteId(pub u32);
 
 #[derive(Copy, Clone)]
 pub struct Search<'a>(pub Option<&'a str>);
@@ -108,12 +110,21 @@ impl<'a> MpdCmd for QueueAdd<'a> {
     }
 }
 
-impl<'a> MpdCmd for QueueMoveid<'a> {
+impl<'a> MpdCmd for QueueMoveId<'a> {
     const CMD: &'static str = "moveid";
     type Handler = OkResponse;
 
     fn argument(&self) -> Option<MpdCmdParameters> {
         Some(MpdCmdParameters::U32AndString(self.0 as u32, self.1.to_string()))
+    }
+}
+
+impl MpdCmd for QueueDeleteId {
+    const CMD: &'static str = "deleteid";
+    type Handler = OkResponse;
+
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String(self.0.to_string()))
     }
 }
 
