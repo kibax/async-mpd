@@ -163,6 +163,11 @@ impl MpdClient {
         self.exec(cmd::PlaylistInfo).await
     }
 
+    pub async fn queue_moveid(&mut self, from:u32, to:&str) -> Result<(), Error> {
+        self.exec(cmd::QueueMoveid(from, to)).await
+    }
+
+
     /// # Example
     /// ```
     /// use async_mpd::{MpdClient, Error, Tag, Filter, ToFilterExpr};

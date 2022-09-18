@@ -1,13 +1,13 @@
 [package]
 name = "async-mpd"
 edition = "2018"
-version = "0.6.0"
-authors = ["Johan Kristell <johan@jott.se>"]
+version = "0.6.0.1"
+authors = ["Johan Kristell <johan@jott.se>", "kibax <kibax@kibax.de>"]
 keywords = ["mpd"]
 license = "MIT OR Apache-2.0"
 description = "Async Mpd client library"
 categories = ["network-programming"]
-repository = "https://github.com/jkristell/async-mpd"
+repository = "https://github.com/kibax/async-mpd.git"
 readme = "README.md"
 
 [features]

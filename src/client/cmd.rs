@@ -28,6 +28,8 @@ pub struct PlayId(pub u32);
 pub struct QueueClear;
 #[derive(Copy, Clone)]
 pub struct QueueAdd<'a>(pub &'a str);
+#[derive(Copy, Clone)]
+pub struct QueueMoveid<'a>(pub u32, pub &'a str);
 
 #[derive(Copy, Clone)]
 pub struct Search<'a>(pub Option<&'a str>);
@@ -58,19 +60,27 @@ pub struct Listall<'a>(pub Option<&'a str>);
 #[derive(Copy, Clone)]
 pub struct ListallInfo<'a>(pub Option<&'a str>);
 
+pub enum MpdCmdParameters {
+    String(String),
+    U32AndString(u32, String),
+}
 pub trait MpdCmd {
     /// The Command name
     const CMD: &'static str;
     /// The Response handler for this command
     type Handler: ResponseHandler;
     /// Optionally returns the commands argument as a String
-    fn argument(&self) -> Option<String> {
+    fn argument(&self) -> Option<MpdCmdParameters> {
         None
     }
     /// Creates the MPD command line for this command
     fn to_cmdline(&self) -> String {
         if let Some(arg) = self.argument() {
-            format!("{} \"{}\"\n", Self::CMD, arg)
+            match arg {
+                MpdCmdParameters::String(arg) => format!("{} \"{}\"\n", Self::CMD, arg),
+                MpdCmdParameters::U32AndString(arg0, arg1) => format!("{} {} \"{}\"\n", Self::CMD, arg0, arg1),
+
+            }
         } else {
             format!("{}\n", Self::CMD)
         }
@@ -81,8 +91,11 @@ impl<'a> MpdCmd for ListallInfo<'a> {
     const CMD: &'static str = "listallinfo";
     type Handler = MixedResponseResponse;
 
-    fn argument(&self) -> Option<String> {
-        self.0.map(ToString::to_string)
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        match self.0 {
+            Some(arg) => Some(MpdCmdParameters::String(arg.to_string())),
+            None => None,
+        }        
     }
 }
 
@@ -90,8 +103,17 @@ impl<'a> MpdCmd for QueueAdd<'a> {
     const CMD: &'static str = "add";
     type Handler = OkResponse;
 
-    fn argument(&self) -> Option<String> {
-        Some(self.0.to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String(self.0.to_string()))
+    }
+}
+
+impl<'a> MpdCmd for QueueMoveid<'a> {
+    const CMD: &'static str = "moveid";
+    type Handler = OkResponse;
+
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::U32AndString(self.0 as u32, self.1.to_string()))
     }
 }
 
@@ -99,8 +121,11 @@ impl<'a> MpdCmd for Listall<'a> {
     const CMD: &'static str = "listall";
     type Handler = RespMapResponse<ListallResponse>;
 
-    fn argument(&self) -> Option<String> {
-        self.0.map(ToString::to_string)
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        match self.0 {
+            Some(arg) => Some(MpdCmdParameters::String(arg.to_string())),
+            None => None,
+        }
     }
 }
 
@@ -108,8 +133,11 @@ impl<'a> MpdCmd for Update<'a> {
     const CMD: &'static str = "update";
     type Handler = RespMapResponse<DatabaseVersion>;
 
-    fn argument(&self) -> Option<String> {
-        self.0.map(ToString::to_string)
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        match self.0 {
+            Some(arg) => Some(MpdCmdParameters::String(arg.to_string())),
+            None => None,
+        }        
     }
 }
 
@@ -117,16 +145,22 @@ impl<'a> MpdCmd for Rescan<'a> {
     const CMD: &'static str = "rescan";
     type Handler = RespMapResponse<DatabaseVersion>;
 
-    fn argument(&self) -> Option<String> {
-        self.0.map(ToString::to_string)
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        match self.0 {
+            Some(arg) => Some(MpdCmdParameters::String(arg.to_string())),
+            None => None,
+        }        
     }
 }
 
 impl<'a> MpdCmd for Search<'a> {
     const CMD: &'static str = "search";
     type Handler = Tracks;
-    fn argument(&self) -> Option<String> {
-        self.0.map(ToString::to_string)
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        match self.0 {
+            Some(arg) => Some(MpdCmdParameters::String(arg.to_string())),
+            None => None,
+        }        
     }
 }
 
@@ -138,32 +172,32 @@ impl MpdCmd for PlaylistInfo {
 impl MpdCmd for Repeat {
     const CMD: &'static str = "repeat";
     type Handler = OkResponse;
-    fn argument(&self) -> Option<String> {
-        Some((self.0 as u32).to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String((self.0 as u32).to_string()))
     }
 }
 
 impl MpdCmd for Random {
     const CMD: &'static str = "random";
     type Handler = OkResponse;
-    fn argument(&self) -> Option<String> {
-        Some((self.0 as u32).to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String((self.0 as u32).to_string()))
     }
 }
 
 impl MpdCmd for Consume {
     const CMD: &'static str = "consume";
     type Handler = OkResponse;
-    fn argument(&self) -> Option<String> {
-        Some((self.0 as u32).to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String((self.0 as u32).to_string()))
     }
 }
 
 impl MpdCmd for PlayPause {
     const CMD: &'static str = "pause";
     type Handler = OkResponse;
-    fn argument(&self) -> Option<String> {
-        Some((self.0 as u32).to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String((self.0 as u32).to_string()))
     }
 }
 
@@ -205,8 +239,8 @@ impl MpdCmd for Setvol {
     const CMD: &'static str = "setvol";
     type Handler = OkResponse;
 
-    fn argument(&self) -> Option<String> {
-        Some(self.0.to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String(self.0.to_string()))
     }
 }
 
@@ -219,7 +253,7 @@ impl MpdCmd for PlayId {
     const CMD: &'static str = "playid";
     type Handler = OkResponse;
 
-    fn argument(&self) -> Option<String> {
-        Some(self.0.to_string())
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String(self.0.to_string()))
     }
 }
