@@ -152,7 +152,11 @@ impl MpdClient {
     // Queue handling commands
 
     pub async fn queue_add(&mut self, path: &str) -> Result<(), Error> {
-        self.exec(cmd::QueueAdd(path)).await
+        self.exec(cmd::QueueAdd(path, None)).await
+    }
+
+    pub async fn queue_add_at_position(&mut self, path: &str, position: &str) -> Result<(), Error> {
+        self.exec(cmd::QueueAdd(path, Some(position))).await
     }
 
     pub async fn queue_clear(&mut self) -> Result<(), Error> {

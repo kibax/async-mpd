@@ -27,7 +27,7 @@ pub struct PlayId(pub u32);
 #[derive(Copy, Clone)]
 pub struct QueueClear;
 #[derive(Copy, Clone)]
-pub struct QueueAdd<'a>(pub &'a str);
+pub struct QueueAdd<'a,'b>(pub &'a str, pub Option<&'b str>);
 #[derive(Copy, Clone)]
 pub struct QueueMoveId<'a>(pub u32, pub &'a str);
 #[derive(Copy, Clone)]
@@ -64,6 +64,7 @@ pub struct ListallInfo<'a>(pub Option<&'a str>);
 
 pub enum MpdCmdParameters {
     String(String),
+    StringAndString(String, String),
     U32AndString(u32, String),
 }
 pub trait MpdCmd {
@@ -80,8 +81,8 @@ pub trait MpdCmd {
         if let Some(arg) = self.argument() {
             match arg {
                 MpdCmdParameters::String(arg) => format!("{} \"{}\"\n", Self::CMD, arg),
+                MpdCmdParameters::StringAndString(arg0, arg1) => format!("{} \"{}\" \"{}\"\n", Self::CMD, arg0, arg1),
                 MpdCmdParameters::U32AndString(arg0, arg1) => format!("{} {} \"{}\"\n", Self::CMD, arg0, arg1),
-
             }
         } else {
             format!("{}\n", Self::CMD)
@@ -101,12 +102,15 @@ impl<'a> MpdCmd for ListallInfo<'a> {
     }
 }
 
-impl<'a> MpdCmd for QueueAdd<'a> {
+impl<'a,'b> MpdCmd for QueueAdd<'a,'b> {
     const CMD: &'static str = "add";
     type Handler = OkResponse;
 
     fn argument(&self) -> Option<MpdCmdParameters> {
-        Some(MpdCmdParameters::String(self.0.to_string()))
+        match self.1 {
+            Some(position) => Some(MpdCmdParameters::StringAndString(self.0.to_string(), position.to_string())),
+            None => Some(MpdCmdParameters::String(self.0.to_string())),
+        }
     }
 }
 
