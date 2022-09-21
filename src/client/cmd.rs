@@ -25,6 +25,8 @@ pub struct Consume(pub bool);
 #[derive(Copy, Clone)]
 pub struct PlayId(pub u32);
 #[derive(Copy, Clone)]
+pub struct PlayAtPosition(pub u32);
+#[derive(Copy, Clone)]
 pub struct QueueClear;
 #[derive(Copy, Clone)]
 pub struct QueueAdd<'a,'b>(pub &'a str, pub Option<&'b str>);
@@ -266,6 +268,15 @@ impl MpdCmd for Stop {
 
 impl MpdCmd for PlayId {
     const CMD: &'static str = "playid";
+    type Handler = OkResponse;
+
+    fn argument(&self) -> Option<MpdCmdParameters> {
+        Some(MpdCmdParameters::String(self.0.to_string()))
+    }
+}
+
+impl MpdCmd for PlayAtPosition {
+    const CMD: &'static str = "play";
     type Handler = OkResponse;
 
     fn argument(&self) -> Option<MpdCmdParameters> {

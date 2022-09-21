@@ -117,6 +117,10 @@ impl MpdClient {
         self.exec(cmd::PlayId(id)).await
     }
 
+    pub async fn play_at_position(&mut self, songpos: u32) -> Result<(), Error> {
+        self.exec(cmd::PlayAtPosition(songpos)).await
+    }
+
     pub async fn pause(&mut self) -> Result<(), Error> {
         self.play_pause(false).await
     }
